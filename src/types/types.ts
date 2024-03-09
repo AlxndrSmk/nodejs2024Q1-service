@@ -1,20 +1,20 @@
 export interface User {
-  id: string; // uuid v4
+  id: string;
   login: string;
-  password: string;
+  password?: string;
   version: number; // integer number, increments on update
-  createdAt: number; // timestamp of creation
-  updatedAt: number; // timestamp of last update
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface Artist {
-  id: string; // uuid v4
+  id: string;
   name: string;
   grammy: boolean;
 }
 
 export interface Track {
-  id: string; // uuid v4
+  id: string;
   name: string;
   artistId: string | null; // refers to Artist
   albumId: string | null; // refers to Album
@@ -22,7 +22,7 @@ export interface Track {
 }
 
 export interface Album {
-  id: string; // uuid v4
+  id: string;
   name: string;
   year: number;
   artistId: string | null; // refers to Artist
@@ -32,4 +32,9 @@ export interface Favorites {
   artists: string[]; // favorite artists ids
   albums: string[]; // favorite albums ids
   tracks: string[]; // favorite tracks ids
+}
+
+export interface CreateUserDto {
+  login: string;
+  password: string;
 }
