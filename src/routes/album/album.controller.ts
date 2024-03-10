@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { AlbumService } from 'src/providers/album.service';
+import { AlbumService } from 'src/routes/album/album.service';
 import { Album } from 'src/types/types';
 
 @Controller('album')

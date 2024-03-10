@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { Artist } from '../types/types';
-import { ArtistService } from 'src/providers/artist.service';
+import { Artist } from '../../types/types';
+import { ArtistService } from 'src/routes/artist/artist.service';
 
 @Controller('artist')
 export class ArtistController {

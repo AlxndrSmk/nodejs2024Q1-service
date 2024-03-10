@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { tracks } from '../db/db';
+import { tracks } from '../../database/db';
 import { Track } from 'src/types/types';
 
 @Injectable()

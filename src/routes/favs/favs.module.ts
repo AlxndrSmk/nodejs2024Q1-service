@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { FavsController } from 'src/controllers/favs.controller';
-import { FavsService } from 'src/providers/favs.service';
+import { FavsController } from 'src/routes/favs/favs.controller';
+import { FavsService } from 'src/routes/favs/favs.service';
 
 @Module({
   imports: [],

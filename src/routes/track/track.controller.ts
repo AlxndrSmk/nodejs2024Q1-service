@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { Track } from '../types/types';
-import { TrackService } from 'src/providers/track.service';
+import { Track } from '../../types/types';
+import { TrackService } from 'src/routes/track/track.service';
 
 @Controller('track')
 export class TrackController {
