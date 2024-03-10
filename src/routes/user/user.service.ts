@@ -11,8 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { validate as uuidValidate } from 'uuid';
 import { users } from '../../database/db';
-import { CreateUserDto, UpdatePasswordDto, User } from '../../types/types';
-
+import { CreateUserDto, UpdatePasswordDto, User } from './models';
 @Injectable()
 export class UserService {
   private hashPassword(password: string): string {

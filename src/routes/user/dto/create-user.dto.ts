@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString, MinLength } from 'class-validator';
-import { CreateUserDto } from 'src/types/types';
+import { CreateUserDto } from '../models';
 
 export class UserDto implements CreateUserDto {
   @IsNotEmpty()

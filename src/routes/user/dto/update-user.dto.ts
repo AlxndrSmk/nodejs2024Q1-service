@@ -1,5 +1,5 @@
 import { IsNotEmpty, MinLength } from 'class-validator';
-import { UpdatePasswordDto } from 'src/types/types';
+import { UpdatePasswordDto } from '../models';
 
 export class UpdateUserDto implements UpdatePasswordDto {
   @IsNotEmpty()

@@ -11,10 +11,10 @@ import {
   Put,
   ValidationPipe,
 } from '@nestjs/common';
-import { User } from '../../types/types';
 import { UserService } from './user.service';
-import { UserDto } from 'src/dto/create-user.dto';
-import { UpdateUserDto } from 'src/dto/update-user.dto';
+import { UserDto } from 'src/routes/user/dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './models';
 
 @Controller('user')
 export class UserController {

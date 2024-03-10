@@ -1,4 +1,8 @@
-import { Album, Artist, Favorites, Track, User } from 'src/types/types';
+import { Album } from 'src/routes/album/models';
+import { Artist } from 'src/routes/artist/models';
+import { Track } from 'src/routes/track/models';
+import { User } from 'src/routes/user/models';
+import { Favorites } from 'src/types/types';
 
 export const users: User[] = [];
 export const artists: Artist[] = [];
