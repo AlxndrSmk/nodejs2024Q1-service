@@ -9,7 +9,7 @@ export interface User {
 
 export interface CreateUserDto {
   login: string;
-  password: string;
+  password?: string;
 }
 
 export interface UpdatePasswordDto {

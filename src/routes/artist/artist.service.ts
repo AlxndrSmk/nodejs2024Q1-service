@@ -8,14 +8,20 @@ import {
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { validate as uuidValidate } from 'uuid';
-import { artists } from '../../database/db';
 import { Artist } from './models';
 import { CreateArtistDto } from './dto/create-artist.dto';
+import Database from 'src/database/db.service';
 
 @Injectable()
 export class ArtistService {
+  private database: Database;
+
+  constructor() {
+    this.database = new Database();
+  }
+
   getArtists(): Artist[] {
-    return artists;
+    return this.database.artists;
   }
 
   @UsePipes(new ValidationPipe())
@@ -28,7 +34,7 @@ export class ArtistService {
       grammy,
     };
 
-    artists.push(newArtist);
+    this.database.artists.push(newArtist);
     return newArtist;
   }
 
@@ -36,11 +42,13 @@ export class ArtistService {
     if (!uuidValidate(id))
       throw new BadRequestException('userId is not a valid uuid');
 
-    const albumIndex = artists.findIndex((artist: Artist) => artist.id === id);
+    const albumIndex = this.database.artists.findIndex(
+      (artist: Artist) => artist.id === id,
+    );
     if (albumIndex === -1)
       throw new NotFoundException(`User with ID ${id} not found`);
 
-    artists.splice(albumIndex, 1);
+    this.database.artists.splice(albumIndex, 1);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,

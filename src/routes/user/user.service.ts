@@ -1,6 +1,6 @@
 import {
   BadRequestException,
-  ConflictException,
+  ForbiddenException,
   HttpStatus,
   Injectable,
   NotFoundException,
@@ -10,20 +10,23 @@ import {
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { validate as uuidValidate } from 'uuid';
-import { users } from '../../database/db';
 import { CreateUserDto, UpdatePasswordDto, User } from './models';
+import Database from 'src/database/db.service';
 @Injectable()
 export class UserService {
+  private database: Database;
+
+  constructor() {
+    this.database = new Database();
+  }
+
   private hashPassword(password: string): string {
     const saltRounds = process.env.CRYPT_SALT || 10;
     return bcrypt.hashSync(password, saltRounds);
   }
 
   getUsers(): User[] {
-    return users.map((user) => {
-      const { password, ...userWithoutPassword } = user;
-      return userWithoutPassword;
-    });
+    return this.database.getUsers();
   }
 
   @UsePipes(new ValidationPipe())
@@ -45,7 +48,7 @@ export class UserService {
       updatedAt: Date.now(),
     };
 
-    users.push(newUser);
+    this.database.addUser(newUser);
     const userResponse = { ...newUser };
     delete userResponse.password;
 
@@ -61,21 +64,24 @@ export class UserService {
       throw new BadRequestException('userId is not a valid uuid');
     }
 
-    const user = users.find((user) => user.id === id);
+    const user = this.database.users.find((user) => user.id === id);
     if (!user) return undefined;
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 
   deleteUser(id: string) {
+    return this.database.deleteUser(id);
     if (!uuidValidate(id))
       throw new BadRequestException('userId is not a valid uuid');
 
-    const userIndex = users.findIndex((user: User) => user.id === id);
+    const userIndex = this.database.users.findIndex(
+      (user: User) => user.id === id,
+    );
     if (userIndex === -1)
       throw new NotFoundException(`User with ID ${id} not found`);
 
-    users.splice(userIndex, 1);
+    this.database.users.splice(userIndex, 1);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,
@@ -83,31 +89,30 @@ export class UserService {
   }
 
   async updatePassword(id: string, updatePasswordDto: UpdatePasswordDto) {
-    const user = users.find((user) => user.id === id);
+    const { oldPassword, newPassword } = updatePasswordDto;
+    if (!oldPassword || !newPassword) {
+      throw new BadRequestException(
+        'Invalid oldPassword or newPassword provided. Please provide a valid fields.',
+      );
+    }
+    const user = this.getUserById(id);
+    const updatedUserIndex = user?.id;
 
-    if (!uuidValidate(id))
-      throw new BadRequestException('userId is not a valid uuid');
-
-    if ((!uuidValidate(id) && !user) || !user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+    if (user?.password !== oldPassword) {
+      throw new ForbiddenException(
+        'Old password is incorrect. Please provide the correct old password.',
+      );
     }
 
-    const isPasswordMatch = bcrypt.compare(
-      updatePasswordDto.oldPassword,
-      user.password,
-    );
-
-    if (!isPasswordMatch) {
-      throw new ConflictException('Old password is incorrect');
-    }
-
-    user.password = this.hashPassword(updatePasswordDto.newPassword);
-    user.updatedAt = Date.now();
-    user.version = user.version + 1;
-
-    const userResponse = { ...user };
-    delete userResponse.password;
-
-    return userResponse;
+    const updatedUser: User = {
+      ...user,
+      password: updatePasswordDto.newPassword,
+      version: user.version + 1,
+      updatedAt: Date.now(),
+    };
+    this.database.users[updatedUserIndex] = updatedUser;
+    const response = { ...updatedUser };
+    delete response.password;
+    return response;
   }
 }

@@ -6,43 +6,48 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
 import { validate as uuidValidate } from 'uuid';
-import { tracks } from '../../database/db';
-import { Track } from './models';
 import { CreateTrackDto } from './dto/create-track.dto';
+import { Track } from './entities/track.entity';
+import Database from 'src/database/db.service';
 
 @Injectable()
 export class TrackService {
+  private database: Database;
+
+  constructor() {
+    this.database = new Database();
+  }
+
   getTracks(): Track[] {
-    return tracks;
+    return this.database.tracks;
   }
 
   @UsePipes(new ValidationPipe())
   addTrack(createTrackDto: CreateTrackDto): Track {
-    const { name, artistId, albumId, duration } = createTrackDto;
-
-    const newTrack: Track = {
-      id: uuidv4(),
-      name,
-      artistId,
-      albumId,
-      duration,
-    };
-
-    tracks.push(newTrack);
-    return newTrack;
+    return this.database.addTrack(createTrackDto);
   }
 
   deleteTrack(id: string) {
     if (!uuidValidate(id))
       throw new BadRequestException('userId is not a valid uuid');
 
-    const trackIndex = tracks.findIndex((track: Track) => track.id === id);
+    const trackIndex = this.database.tracks.findIndex(
+      (track: Track) => track.id === id,
+    );
     if (trackIndex === -1)
       throw new NotFoundException(`User with ID ${id} not found`);
 
-    tracks.splice(trackIndex, 1);
+    this.database.tracks.splice(trackIndex, 1);
+    const trackToDelete = this.database.tracks[trackIndex];
+    this.database.tracks.splice(trackIndex, 1);
+
+    this.database.tracks.map((track) => {
+      if (track.artistId === trackToDelete?.artistId) {
+        return { ...track, artistId: null };
+      }
+      return track;
+    });
 
     return {
       statusCode: HttpStatus.NO_CONTENT,

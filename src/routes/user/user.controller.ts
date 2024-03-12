@@ -44,7 +44,6 @@ export class UserController {
     return this.userService.deleteUser(id);
   }
 
-  @HttpCode(HttpStatus.CREATED)
   @Put(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.updatePassword(id, updateUserDto);
