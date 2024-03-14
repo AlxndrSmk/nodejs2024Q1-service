@@ -1,18 +1,24 @@
 version: "1.0"
 
 services:
-  web:
-    image: my-web-app:latest
+  app:
+    build:
+      context: ./nodejs2024Q1-service
     ports:
-      - "80:80"
-    volumes:
-      - ./app-data:/var/www/html
-    environment:
-      - DATABASE_URL=db:3306
-      
-  database:
-    image: mysql:latest
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
+      - "3000:3000"
+    networks:
+      - my-bridge
+
+  db:
+    image:
+    networks:
+      - my-bridge
+
+networks:
+  my-bridge:
+    driver: bridge
+    name: my-bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.50.0/24
