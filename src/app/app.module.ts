@@ -8,7 +8,14 @@ import { AlbumModule } from '../routes/album/album.module';
 import { FavsModule } from '../routes/favs/favs.module';
 
 @Module({
-  imports: [UserModule, ArtistModule, TrackModule, AlbumModule, FavsModule],
+  imports: [
+    UserModule,
+    UserModule,
+    ArtistModule,
+    TrackModule,
+    AlbumModule,
+    FavsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

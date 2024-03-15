@@ -29,6 +29,7 @@ class Database {
   }
 
   addUser(createUserDto: CreateUserDto) {
+    console.log('user added!');
     const newUser = new User(createUserDto);
     this.users.push(newUser);
     const response = { ...newUser };
@@ -45,9 +46,9 @@ class Database {
       throw new BadRequestException('userId is not a valid uuid');
 
     const userIndex = this.users.findIndex((user: User) => user.id === id);
+
     if (userIndex === -1)
       throw new NotFoundException(`User with ID ${id} not found`);
-
     this.users = this.users.filter((user) => user.id !== id);
   }
 

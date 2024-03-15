@@ -1,24 +1,58 @@
-version: "1.0"
-
+version: "3.9"
 services:
-  app:
-    build:
-      context: ./nodejs2024Q1-service
-    ports:
-      - "3000:3000"
-    networks:
-      - my-bridge
 
-  db:
-    image:
+  postgres:
+    env_file: .env
+    container_name: ${POSTGRES_HOST}
+    image: database
+    build:
+      context: ./PostgreSQL
+      dockerfile: Dockerfile
+    environment:
+        - POSTGRES_HOST:${POSTGRES_HOST}
+        - POSTGRES_DB:${POSTGRES_DB}
+        - POSTGRES_USER:${POSTGRES_USER}
+        - POSTGRES_PASSWORD:${POSTGRES_PASSWORD}
+        - POSTGRES_HOST:postgres
+        - PG_CONTAINER_NAME:database
+    restart: always
+    volumes:
+      - ./pgdata/data:/var/lib/postgresql/data
+      - ./pgdata/logs:/var/lib/postgresql/logs
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
     networks:
-      - my-bridge
+      - hls
+
+  server:
+    container_name: server
+    image: server
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+        - PORT:${PORT}
+        - CRYPT_SALT:${CRYPT_SALT}
+        - JWT_SECRET_KEY:${JWT_SECRET_KEY}
+        - JWT_SECRET_REFRESH_KEY:${JWT_SECRET_REFRESH_KEY}
+        - TOKEN_EXPIRE_TIME:${TOKEN_EXPIRE_TIME}
+        - TOKEN_REFRESH_EXPIRE_TIME:${TOKEN_REFRESH_EXPIRE_TIME}
+    restart: always
+    volumes:
+      - ./src:/server/src
+    ports:
+      - ${PORT}:${PORT}
+    depends_on:
+      - postgres
+    networks:
+      - hls
+
+    command: ["npm", "run", "start:dev"]
 
 networks:
-  my-bridge:
+  hls:
     driver: bridge
-    name: my-bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 192.168.50.0/24
+volumes:
+  src:
+  pgdata:

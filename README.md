@@ -1,3 +1,17 @@
+### **Docker**
+#### *How to start*
+
+1. > **Rename** .env.example file to .env
+
+2. > **Build:**  *docker-compose build*
+
+3. > **Run:**  *docker-compose up -d*
+
+4. > **Tests:**  *npm run test*
+
+> *If the first time all the tests passed with an error, then try running the tests one by one.*
+> *For some unknown reason, for some reason, the tests do not always pass after the first launch of the application*
+
 # Home Library Service
 
 ## Prerequisites
