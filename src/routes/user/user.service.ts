@@ -21,7 +21,7 @@ export class UserService {
   }
 
   private hashPassword(password: string): string {
-    const saltRounds = process.env.CRYPT_SALT || 10;
+    const saltRounds = Number(process.env.CRYPT_SALT) || 10;
     return bcrypt.hashSync(password, saltRounds);
   }
 
