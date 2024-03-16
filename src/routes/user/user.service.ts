@@ -1,118 +1,105 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
-import { validate as uuidValidate } from 'uuid';
+import { Injectable, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CreateUserDto, UpdatePasswordDto, User } from './models';
-import Database from 'src/database/db.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import UserEntity from 'src/typeORM/entities/user';
+import { Repository } from 'typeorm';
 @Injectable()
 export class UserService {
-  private database: Database;
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly database: Repository<UserEntity>,
+  ) {}
 
-  constructor() {
-    this.database = new Database();
-  }
-
-  private hashPassword(password: string): string {
-    const saltRounds = Number(process.env.CRYPT_SALT) || 10;
-    return bcrypt.hashSync(password, saltRounds);
-  }
-
-  getUsers(): User[] {
-    return this.database.getUsers();
+  async getUsers(): Promise<User[]> {
+    return await this.database.find({
+      select: {
+        id: true,
+        login: true,
+        version: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
   }
 
   @UsePipes(new ValidationPipe())
-  addUser(createUserDto: CreateUserDto): User {
-    const { login, password } = createUserDto;
-
-    if (!login || !password) {
-      throw new BadRequestException('Login and password are required');
-    }
-
-    const hashedPassword = this.hashPassword(password);
-
-    const newUser: User = {
-      id: uuidv4(),
-      login,
-      password: hashedPassword,
-      version: 1,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-
-    this.database.addUser(newUser);
-    const userResponse = { ...newUser };
-    delete userResponse.password;
-
-    return userResponse;
+  async addUser(userDto: CreateUserDto): Promise<User> {
+    return await this.database.save({ ...userDto }).catch(() => {
+      return this.database.findOne({
+        where: {
+          login: userDto.login,
+          password: userDto.password,
+        },
+        select: {
+          id: true,
+          login: true,
+          createdAt: true,
+          updatedAt: true,
+          version: true,
+        },
+      });
+    });
   }
 
-  getUserById(id: string): User | undefined {
-    if (
-      !id.match(
-        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/,
-      )
-    ) {
-      throw new BadRequestException('userId is not a valid uuid');
-    }
+  async getUserById(id: string): Promise<User | undefined> {
+    const user = await this.database.findOne({
+      select: {
+        id: true,
+        login: true,
+        version: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      where: {
+        id: id,
+      },
+    });
 
-    const user = this.database.users.find((user) => user.id === id);
+    return user;
+  }
+
+  async deleteUser(id: string) {
+    return await this.database.delete(id).then((result) => {
+      if (result.affected === 0) return false;
+
+      return true;
+    });
+  }
+
+  public async updatePassword(
+    id: string,
+    dto: UpdatePasswordDto,
+  ): Promise<User | null | undefined> {
+    const user = await this.database.findOne({
+      where: {
+        id: id,
+      },
+      select: {
+        password: true,
+      },
+    });
+
     if (!user) return undefined;
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-  }
+    if (user.password !== dto.oldPassword) return null;
 
-  deleteUser(id: string) {
-    return this.database.deleteUser(id);
-    if (!uuidValidate(id))
-      throw new BadRequestException('userId is not a valid uuid');
-
-    const userIndex = this.database.users.findIndex(
-      (user: User) => user.id === id,
-    );
-    if (userIndex === -1)
-      throw new NotFoundException(`User with ID ${id} not found`);
-
-    this.database.users.splice(userIndex, 1);
-
-    return {
-      statusCode: HttpStatus.NO_CONTENT,
-    };
-  }
-
-  async updatePassword(id: string, updatePasswordDto: UpdatePasswordDto) {
-    const { oldPassword, newPassword } = updatePasswordDto;
-    if (!oldPassword || !newPassword) {
-      throw new BadRequestException(
-        'Invalid oldPassword or newPassword provided. Please provide a valid fields.',
-      );
-    }
-    const user = this.getUserById(id);
-    const updatedUserIndex = user?.id;
-
-    if (user?.password !== oldPassword) {
-      throw new ForbiddenException(
-        'Old password is incorrect. Please provide the correct old password.',
-      );
-    }
-
-    const updatedUser: User = {
-      ...user,
-      password: updatePasswordDto.newPassword,
-      version: user.version + 1,
-      updatedAt: Date.now(),
-    };
-    this.database.users[updatedUserIndex] = updatedUser;
-    const response = { ...updatedUser };
-    delete response.password;
-    return response;
+    return await this.database
+      .update(
+        { id: id, password: dto.oldPassword },
+        { password: dto.newPassword },
+      )
+      .then(() => {
+        return this.database.findOne({
+          where: {
+            id: id,
+          },
+          select: {
+            id: true,
+            login: true,
+            version: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
+      });
   }
 }

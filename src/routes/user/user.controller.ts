@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   NotFoundException,
   Param,
@@ -21,21 +22,23 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get(':id')
-  getUserById(@Param('id') userId: string): User {
+  async getUserById(@Param('id') userId: string): Promise<User> {
     const user = this.userService.getUserById(userId);
     if (!user) throw new NotFoundException('User not found');
-    return user;
+    return await user;
   }
 
   @Get()
-  getUsers(): User[] {
-    return this.userService.getUsers();
+  async getUsers(): Promise<User[]> {
+    return await this.userService.getUsers();
   }
 
   @HttpCode(HttpStatus.CREATED)
   @Post()
-  addUser(@Body(ValidationPipe) createUserDto: UserDto) {
-    return this.userService.addUser(createUserDto);
+  async addUser(@Body(ValidationPipe) createUserDto: UserDto) {
+    const newUser = await this.userService.addUser(createUserDto);
+    delete newUser['password'];
+    return newUser;
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -45,7 +48,15 @@ export class UserController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.updatePassword(id, updateUserDto);
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    const result = await this.userService.updatePassword(id, updateUserDto);
+
+    if (result === null)
+      throw new HttpException('oldPassowrd is wrong', HttpStatus.FORBIDDEN);
+
+    if (!result)
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+
+    return result;
   }
 }

@@ -8,9 +8,9 @@ const port = process.env.PORT || 4000;
 const bootstrap = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = new DocumentBuilder()
-    .setTitle('home-library')
+    .setTitle('postgress')
     .setDescription('Home Library REST Service')
-    .addTag('home-library')
+    .addTag('postgress')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('doc', app, document);
