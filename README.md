@@ -1,3 +1,17 @@
+### **Docker**
+#### *How to start*
+
+1. > **Rename** .env.example file to .env
+
+2. > **Build:**  *docker-compose build*
+
+3. > **Run:**  *docker-compose up -d*
+
+4. > **Tests:**  *npm run test*
+
+> *If the first time all the tests passed with an error, then try running the tests one by one.*
+> *For some unknown reason, for some reason, the tests do not always pass after the first launch of the application*
+
 # Home Library Service
 
 ## Prerequisites
@@ -8,7 +22,7 @@
 ## Downloading
 
 ```
-git clone https://github.com/AlxndrSmk/nodejs2024Q1-service.git
+git clone {repository URL}
 ```
 
 ## Installing NPM modules
@@ -70,3 +84,21 @@ npm run format
 Press <kbd>F5</kbd> to debug.
 
 For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+
+## Additional
+
+### Environment Variables:
+
+Locate the ```.env.example``` file in your project's root directory. Copy it as ```.env``` and customize the values according to your specific setup. This file holds sensitive information needed by the application.
+
+### Testing in Isolation:
+
+Running tests concurrently with the application can be disruptive. To ensure a clean testing environment, open a separate terminal window and execute the designated test commands. This allows for uninterrupted testing without affecting the application's operation.
+
+### Accessing Documentation:
+
+The application boasts comprehensive OpenAPI documentation, providing in-depth details about its functionalities. After launching the application, simply navigate to ```http://localhost:4000/doc/``` in your web browser to access this valuable resource.
+
+### Debugging and Beyond:
+
+For streamlined debugging within Visual Studio Code, leverage the built-in debugger. Simply press F5 to initiate the debugging process. Additionally, explore the package.json file to discover other scripts potentially useful for development or production environments.
